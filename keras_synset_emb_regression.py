@@ -1,5 +1,8 @@
 import argparse
+
 import numpy as np
+np.random.seed(710)
+
 from keras.models import Sequential, Model
 from keras.layers import Embedding, Reshape, Activation, Input
 from keras.layers.merge import Dot
@@ -60,11 +63,15 @@ model.compile(loss='mse', optimizer='adam')
 model.fit(x=[X_out, X_in], y=Y, epochs=args.epochs, batch_size=32)
 
 # save embeddings
-with open(args.save_emb + ".out.vec.txt", "w") as f_emb_out, open(args.save_emb + ".out.in.txt", "w") as f_emb_in:
-    for f, emb in zip([f_emb_out, f_emb_in], [out_emb, in_emb]):
+out_emb_mat, in_emb_mat = model.get_weights()
+print("saving trained embeddings to %s.{out,in}.vec.txt" % (args.save_emb))
+out_emb_path = args.save_emb + ".out.vec.txt"
+in_emb_path = args.save_emb + ".in.vec.txt"
+with open(out_emb_path, "w") as f_emb_out, open(in_emb_path, "w") as f_emb_in:
+    for f, emb_mat in zip([f_emb_out, f_emb_in], [out_emb_mat, in_emb_mat]):
         f.write("%d %d\n" % (V, args.emb_size))
-        emb_mat = emb.get_weights()[0]
         for i in range(V):
             f.write(id2syn[i])
-            f.write(" ")
-            #TODO
+            f.write(' ')
+            f.write(' '.join( map(str, list(emb_mat[i, :])) ))
+            f.write('\n')
