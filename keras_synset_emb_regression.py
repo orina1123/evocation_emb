@@ -54,8 +54,8 @@ o = Dot(axes=2)([out_emb, in_emb])
 o = Reshape((1,), input_shape=(1, 1))(o)
 #o = Activation('sigmoid')(o)
 
-#model = Model(inputs=[out_inputs, in_inputs], outputs=o)
-model = Model(inputs={"out_syn": out_inputs, "in_syn": in_inputs}, outputs=o)
+model = Model(inputs=[out_inputs, in_inputs], outputs=o)
+#model = Model(inputs={"out_syn": out_inputs, "in_syn": in_inputs}, outputs=o)
 model.summary()
 model.compile(loss='mse', optimizer='adam')
 
@@ -63,7 +63,14 @@ model.compile(loss='mse', optimizer='adam')
 model.fit(x=[X_out, X_in], y=Y, epochs=args.epochs, batch_size=32)
 
 # save embeddings
-out_emb_mat, in_emb_mat = model.get_weights()
+#out_emb_mat, in_emb_mat = model.get_weights()
+for layer in model.layers:
+    #print(layer, layer.name)
+    if layer.name == "out_emb":
+        out_emb_mat = layer.get_weights()[0]
+    elif layer.name == "in_emb":
+        in_emb_mat = layer.get_weights()[0]
+print(out_emb_mat.shape, in_emb_mat.shape)
 print("saving trained embeddings to %s.{out,in}.vec.txt" % (args.save_emb))
 out_emb_path = args.save_emb + ".out.vec.txt"
 in_emb_path = args.save_emb + ".in.vec.txt"
