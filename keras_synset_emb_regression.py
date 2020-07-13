@@ -13,7 +13,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("pair_score_file", type=argparse.FileType('r'), help="TSV of synset pair - score [controlled.standard.synset_pair_avg_score.tsv]")
 ap.add_argument("emb_size", type=int, help="embedding size / # dimensions")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
-ap.add_argument("-o", "--save-emb", type=str, help="save trained synset input/output embedding (word2vec txt format), *.[out|in].vec.txt")
+ap.add_argument("-vs", "--val-split", type=float, default=0.0, help="split a portion of training data for validation")
+ap.add_argument("-o", "--save-emb", type=str, default=None, help="save trained synset input/output embedding (word2vec txt format), *.[out|in].vec.txt")
 
 args = ap.parse_args()
 
@@ -39,6 +40,12 @@ print(len(X_out), len(X_in), len(Y))
 X_out = np.array(X_out)
 X_in = np.array(X_in)
 Y = np.array(Y)
+#  shuffle (for rand. val. set)
+indices = np.arange(X_out.shape[0])
+np.random.shuffle(indices)
+X_out = X_out[indices]
+X_in = X_in[indices]
+Y = Y[indices]
 
 # build model
 V = len(id2syn)
@@ -55,30 +62,28 @@ o = Reshape((1,), input_shape=(1, 1))(o)
 #o = Activation('sigmoid')(o)
 
 model = Model(inputs=[out_inputs, in_inputs], outputs=o)
-#model = Model(inputs={"out_syn": out_inputs, "in_syn": in_inputs}, outputs=o)
 model.summary()
 model.compile(loss='mse', optimizer='adam')
 
 # train model
-model.fit(x=[X_out, X_in], y=Y, epochs=args.epochs, batch_size=32)
+model.fit(x=[X_out, X_in], y=Y, epochs=args.epochs, batch_size=32, validation_split=args.val_split)
 
 # save embeddings
-#out_emb_mat, in_emb_mat = model.get_weights()
-for layer in model.layers:
-    #print(layer, layer.name)
-    if layer.name == "out_emb":
-        out_emb_mat = layer.get_weights()[0]
-    elif layer.name == "in_emb":
-        in_emb_mat = layer.get_weights()[0]
-print(out_emb_mat.shape, in_emb_mat.shape)
-print("saving trained embeddings to %s.{out,in}.vec.txt" % (args.save_emb))
-out_emb_path = args.save_emb + ".out.vec.txt"
-in_emb_path = args.save_emb + ".in.vec.txt"
-with open(out_emb_path, "w") as f_emb_out, open(in_emb_path, "w") as f_emb_in:
-    for f, emb_mat in zip([f_emb_out, f_emb_in], [out_emb_mat, in_emb_mat]):
-        f.write("%d %d\n" % (V, args.emb_size))
-        for i in range(V):
-            f.write(id2syn[i])
-            f.write(' ')
-            f.write(' '.join( map(str, list(emb_mat[i, :])) ))
-            f.write('\n')
+if args.save_emb is not None:
+    #out_emb_mat, in_emb_mat = model.get_weights()
+    for layer in model.layers:
+        #print(layer, layer.name)
+        if layer.name == "out_emb":
+            out_emb_mat = layer.get_weights()[0]
+        elif layer.name == "in_emb":
+            in_emb_mat = layer.get_weights()[0]
+    print(out_emb_mat.shape, in_emb_mat.shape)
+    print("saving trained embeddings to %s.{out,in}.vec.txt" % (args.save_emb))
+    out_emb_path = args.save_emb + ".out.vec.txt"
+    in_emb_path = args.save_emb + ".in.vec.txt"
+    with open(out_emb_path, "w") as f_emb_out, open(in_emb_path, "w") as f_emb_in:
+        for f, emb_mat in zip([f_emb_out, f_emb_in], [out_emb_mat, in_emb_mat]):
+            f.write("%d %d\n" % (V, args.emb_size))
+            for i in range(V):
+                f.write(id2syn[i] + ' ')
+                f.write(' '.join( map(str, list(emb_mat[i, :])) ) + '\n')

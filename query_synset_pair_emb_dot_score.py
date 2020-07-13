@@ -25,20 +25,28 @@ in_emb = gensim.models.KeyedVectors.load_word2vec_format(args.emb_txt_prefix + "
 while True:
     input_str = input("Please enter two synsets, separated by a blank> ")
     s1, s2 = input_str.strip().split(' ')
+
+    not_found = False
+    for s in s1, s2:
+        if s not in out_emb:
+            print("! synset %s not found in vocab" % (s))
+            not_found = True
+    if not_found:
+        continue
     
     if (s1, s2) in pair_score:
         evo_score = pair_score[(s1, s2)]
-        print("[human]\t%s -- evocation --> %s\t%f" % (s1, s2, evo_score))
+        print("[human]\t%s  -- evocation -->  %s\t%f" % (s1, s2, evo_score))
     else:
-        print("[human]\t%s -- evocation --> %s\t[not found]" % (s1, s2))
+        print("[human]\t%s  -- evocation -->  %s\t[not found]" % (s1, s2))
     pred_evo_score = np.dot(out_emb[s1], in_emb[s2])
-    print("[pred]\t%s -- evocation --> %s\t%f" % (s1, s2, pred_evo_score))
+    print("[pred]\t%s  -- evocation -->  %s\t%f" % (s1, s2, pred_evo_score))
     
     if (s2, s1) in pair_score:
         rev_evo_score = pair_score[(s2, s1)]
-        print("[human]\t%s <-- evocation -- %s\t%f" % (s1, s2, rev_evo_score))
+        print("[human]\t%s  <-- evocation --  %s\t%f" % (s1, s2, rev_evo_score))
     else:
-        print("[human]\t%s <-- evocation -- %s\t[not found]" % (s1, s2))
+        print("[human]\t%s  <-- evocation --  %s\t[not found]" % (s1, s2))
     pred_rev_evo_score = np.dot(out_emb[s2], in_emb[s1])
-    print("[pred]\t%s <-- evocation -- %s\t%f" % (s1, s2, pred_rev_evo_score))
+    print("[pred]\t%s  <-- evocation --  %s\t%f" % (s1, s2, pred_rev_evo_score))
     print("")
