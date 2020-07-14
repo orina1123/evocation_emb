@@ -7,11 +7,30 @@ from keras.models import Sequential, Model
 from keras.layers import Embedding, Reshape, Activation, Input
 from keras.layers.merge import Dot
 
+import gensim
+
+def build_emb_mat_from_gensim(id2syn, emb_size, gensim_emb):
+    emb_mat = np.zeros((V, args.emb_size))
+    OOV_cnt = 0
+    for i, syn in enumerate(id2syn):
+        if syn in gensim_emb:
+            emb_mat[i] = gensim_emb[syn]
+        else:
+            print("no pre-trained vector for %s, using zero vector for init." % (syn))
+            OOV_cnt += 1
+    print("# synsets w/o pretrained vectors: %d" % (OOV_cnt))
+    return emb_mat
+
+
 # settings
 ap = argparse.ArgumentParser()
 
 ap.add_argument("pair_score_file", type=argparse.FileType('r'), help="TSV of synset pair - score [controlled.standard.synset_pair_avg_score.tsv]")
 ap.add_argument("emb_size", type=int, help="embedding size / # dimensions")
+ap.add_argument("--init-out", type=str, default=None, help="initialize emb_out with pre-trained synset embeddings")
+ap.add_argument("--freeze-out", action="store_true", help="don't update emb_out during training")
+ap.add_argument("--init-in", type=str, default=None, help="initialize emb_in with pre-trained synset embeddings")
+ap.add_argument("--freeze-in", action="store_true", help="don't update emb_in during training")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
 ap.add_argument("-vs", "--val-split", type=float, default=0.0, help="split a portion of training data for validation")
 ap.add_argument("-o", "--save-emb", type=str, default=None, help="save trained synset input/output embedding (word2vec txt format), *.[out|in].vec.txt")
@@ -52,11 +71,35 @@ V = len(id2syn)
 print("vocab. size:", V)
 #  emb_out
 out_inputs = Input(name="out_syn", shape=(1, ), dtype='int32')
-out_emb = Embedding(V, args.emb_size, name="out_emb")(out_inputs)
+#  pre-trained synset embeddings for emb_out
+out_emb_W = None
+if args.init_out is not None:
+    print("loading pre-trained synset vectors for emb_out from %s" % (args.init_out))
+    pre_emb = gensim.models.KeyedVectors.load_word2vec_format(args.init_out, binary=False)
+    """
+    emb_mat = np.zeros((V, args.emb_size))
+    for i, syn in enumerate(id2syn):
+        if syn in pre_emb:
+            emb_mat[i] = pre_emb[syn]
+        else:
+            print("no pre-trained vector for %s, using zero vector for init." % (syn))
+    out_emb_W = [emb_mat]
+    """
+    out_emb_W = [ build_emb_mat_from_gensim(id2syn, args.emb_size, pre_emb) ]
+out_emb = Embedding(V, args.emb_size, name="out_emb", weights=out_emb_W, trainable=not args.freeze_out)(out_inputs)
 
 #  emb_in
 in_inputs = Input(name="in_syn", shape=(1, ), dtype='int32')
-in_emb  = Embedding(V, args.emb_size, name="in_emb")(in_inputs)
+#  pre-trained synset embeddings for emb_in
+in_emb_W = None
+if args.init_in is not None:
+    print("loading pre-trained synset vectors for emb_in from %s" % (args.init_in))
+    if args.init_in != args.init_out:
+        pre_emb = gensim.models.KeyedVectors.load_word2vec_format(args.init_in, binary=False)
+    in_emb_W = [ build_emb_mat_from_gensim(id2syn, args.emb_size, pre_emb) ]
+in_emb  = Embedding(V, args.emb_size, name="in_emb", weights=in_emb_W, trainable=not args.freeze_in)(in_inputs)
+
+#  dot(out_emb, in_emb)
 o = Dot(axes=2)([out_emb, in_emb])
 o = Reshape((1,), input_shape=(1, 1))(o)
 #o = Activation('sigmoid')(o)
