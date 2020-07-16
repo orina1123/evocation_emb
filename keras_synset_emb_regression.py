@@ -36,7 +36,7 @@ ap.add_argument("--init-out", type=str, default=None, help="initialize emb_out w
 ap.add_argument("--freeze-out", action="store_true", help="don't update emb_out during training")
 ap.add_argument("--init-in", type=str, default=None, help="initialize emb_in with pre-trained synset embeddings")
 ap.add_argument("--freeze-in", action="store_true", help="don't update emb_in during training")
-ap.add_argument("-l2", "--l2-reg", type=float, default=1e-4, help="L2 regularization factor")
+ap.add_argument("-l2", "--l2-reg", type=float, default=0, help="L2 regularization factor")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
 ap.add_argument("-vs", "--val-split", type=float, default=0.0, help="split a portion of training data for validation")
 ap.add_argument("-o", "--save-emb", type=str, default=None, help="save trained synset input/output embedding (word2vec txt format), *.[out|in].vec.txt")
