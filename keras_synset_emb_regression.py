@@ -8,6 +8,8 @@ from keras.layers import Embedding, Reshape, Activation, Input
 from keras.layers.merge import Dot
 #from tensorflow.keras.constraints import unit_norm, max_norm
 from tensorflow.keras import regularizers
+from keras.optimizers import *
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 import gensim
 
@@ -36,10 +38,12 @@ ap.add_argument("--init-out", type=str, default=None, help="initialize emb_out w
 ap.add_argument("--freeze-out", action="store_true", help="don't update emb_out during training")
 ap.add_argument("--init-in", type=str, default=None, help="initialize emb_in with pre-trained synset embeddings")
 ap.add_argument("--freeze-in", action="store_true", help="don't update emb_in during training")
-ap.add_argument("-sigm", "--sigmoid", action="store_true", help="apply a sigmoid (logistic) function after dot product")
+ap.add_argument("-sigm", "--sigmoid", action="store_true", help="apply a sigmoid (logistic) function after dot product, scores need to be scaled to [0, 1]")
 ap.add_argument("-l2", "--l2-reg", type=float, default=0, help="L2 regularization factor")
+ap.add_argument("-lr", "--learning-rate", type=float, default=0.001, help="")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
 ap.add_argument("-vs", "--val-split", type=float, default=0.0, help="split a portion of training data for validation")
+ap.add_argument("-ts", "--test-split", type=float, default=0.0, help="split a portion of training data for testing")
 ap.add_argument("-o", "--save-emb", type=str, default=None, help="save trained synset input/output embedding (word2vec txt format), *.[out|in].vec.txt")
 
 args = ap.parse_args()
@@ -69,9 +73,15 @@ Y = np.array(Y)
 #  shuffle (for rand. val. set)
 indices = np.arange(X_out.shape[0])
 np.random.shuffle(indices)
-X_out = X_out[indices]
-X_in = X_in[indices]
-Y = Y[indices]
+if args.test_split > 0.0:
+    p = int(indices.shape[0]*args.test_split)
+    X_out_test, X_out_train = X_out[indices[:p]], X_out[indices[p:]]
+    X_in_test, X_in_train = X_in[indices[:p]], X_in[indices[p:]]
+    Y_test, Y_train = Y[indices[:p]], Y[indices[p:]]
+else:
+    X_out_train = X_out[indices]
+    X_in_train = X_in[indices]
+    Y_train = Y[indices]
 
 # build model
 V = len(id2syn)
@@ -107,10 +117,26 @@ if args.sigmoid:
 
 model = Model(inputs=[out_inputs, in_inputs], outputs=o)
 model.summary()
-model.compile(loss='mse', optimizer='adam')
+optm = Adam(lr=args.learning_rate)
+model.compile(loss='mse', optimizer=optm)
 
 # train model
-model.fit(x=[X_out, X_in], y=Y, epochs=args.epochs, batch_size=32, validation_split=args.val_split)
+cb = []
+if args.save_emb is not None:
+    best_ckpt_path = args.save_emb + ".model.best.hdf5"
+else:
+    best_ckpt_path = "/tmp/evocation_emb.model.best.hdf5"
+saveBestModel = ModelCheckpoint(best_ckpt_path, monitor='val_loss', verbose=0, save_best_only=True, mode='min')
+cb.append(saveBestModel)
+model.fit(x=[X_out_train, X_in_train], y=Y_train, epochs=args.epochs, batch_size=32, validation_split=args.val_split, callbacks=cb)
+
+# go to best checkpoint
+model.load_weights(best_ckpt_path)
+
+# evaluate model
+if args.test_split > 0.0:
+    loss = model.evaluate([X_out_test, X_in_test], Y_test)
+    print("Test MSE: %.4f" % (loss))
 
 # save embeddings
 if args.save_emb is not None:
