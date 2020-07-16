@@ -36,6 +36,7 @@ ap.add_argument("--init-out", type=str, default=None, help="initialize emb_out w
 ap.add_argument("--freeze-out", action="store_true", help="don't update emb_out during training")
 ap.add_argument("--init-in", type=str, default=None, help="initialize emb_in with pre-trained synset embeddings")
 ap.add_argument("--freeze-in", action="store_true", help="don't update emb_in during training")
+ap.add_argument("-sigm", "--sigmoid", action="store_true", help="apply a sigmoid (logistic) function after dot product")
 ap.add_argument("-l2", "--l2-reg", type=float, default=0, help="L2 regularization factor")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
 ap.add_argument("-vs", "--val-split", type=float, default=0.0, help="split a portion of training data for validation")
@@ -101,7 +102,8 @@ if args.init_in is not None:
 #  dot(out_emb, in_emb)
 o = Dot(axes=2)([out_embbed, in_embbed])
 o = Reshape((1,), input_shape=(1, 1))(o)
-#o = Activation('sigmoid')(o)
+if args.sigmoid:
+    o = Activation('sigmoid')(o)
 
 model = Model(inputs=[out_inputs, in_inputs], outputs=o)
 model.summary()
