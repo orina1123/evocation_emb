@@ -1,0 +1,3 @@
+119668 119668 119668
+vocab. size: 1000
+loading pre-trained synset vectors for emb_out from synset_vectors/from_word/GoogleNews-vectors-negative300--lemma_all_avg.synset.vec.txt
