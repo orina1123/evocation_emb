@@ -10,9 +10,10 @@ from nltk.stem import WordNetLemmatizer
 ap = argparse.ArgumentParser()
 
 ap.add_argument("synset_list", type=argparse.FileType('r'), help="list of synsets to calculate embeddings")
-ap.add_argument("word_vec", type=str, help="pre-trained word vectors, word2vec txt format")
+ap.add_argument("word_vec", type=str, help="pre-trained word vectors, word2vec txt/bin(need -b) format")
 ap.add_argument("method", type=str, choices=["lemma_all_avg"], help="method of composing synset vecotrs from word vectors")
 ap.add_argument("synset_vec", type=argparse.FileType('w'), help="save synset vectors, word2vec txt format")
+ap.add_argument("-bin", "--binary", action="store_true", help="pre-trained word embedding is in word2vec bin format")
 
 args = ap.parse_args()
 
@@ -23,7 +24,7 @@ for line in args.synset_list:
 synset_vec = {}
 synset_word_cnt = {}
 print("loading word vectors from %s" % (args.word_vec))
-word_emb = gensim.models.KeyedVectors.load_word2vec_format(args.word_vec, binary=False)
+word_emb = gensim.models.KeyedVectors.load_word2vec_format(args.word_vec, binary=args.binary)
 print("computing synset vectors")
 emb_size = word_emb.vector_size
 lemmatizer = WordNetLemmatizer()
