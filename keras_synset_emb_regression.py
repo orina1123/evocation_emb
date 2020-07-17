@@ -118,7 +118,7 @@ if args.sigmoid:
 model = Model(inputs=[out_inputs, in_inputs], outputs=o)
 model.summary()
 optm = Adam(lr=args.learning_rate)
-model.compile(loss='mse', optimizer=optm)
+model.compile(loss='mse', optimizer=optm, metrics=["mse", "mae"])
 
 # train model
 cb = []
@@ -126,7 +126,7 @@ if args.save_emb is not None:
     best_ckpt_path = args.save_emb + ".model.best.hdf5"
 else:
     best_ckpt_path = "/tmp/evocation_emb.model.best.hdf5"
-saveBestModel = ModelCheckpoint(best_ckpt_path, monitor='val_loss', verbose=0, save_best_only=True, mode='min')
+saveBestModel = ModelCheckpoint(best_ckpt_path, monitor='val_mse', verbose=0, save_best_only=True, mode='min')
 cb.append(saveBestModel)
 model.fit(x=[X_out_train, X_in_train], y=Y_train, epochs=args.epochs, batch_size=32, validation_split=args.val_split, callbacks=cb)
 
@@ -135,8 +135,8 @@ model.load_weights(best_ckpt_path)
 
 # evaluate model
 if args.test_split > 0.0:
-    loss = model.evaluate([X_out_test, X_in_test], Y_test)
-    print("Test MSE: %.4f" % (loss))
+    loss, mse, mae = model.evaluate([X_out_test, X_in_test], Y_test)
+    print("Test loss: %.4f, MSE: %.4f, MAE: %.4f" % (loss, mse, mae))
 
 # save embeddings
 if args.save_emb is not None:
