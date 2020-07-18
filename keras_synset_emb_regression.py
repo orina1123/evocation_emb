@@ -4,9 +4,9 @@ import numpy as np
 np.random.seed(710)
 
 from keras.models import Sequential, Model
-from keras.layers import Embedding, Reshape, Activation, Input
+from keras.layers import Dense, Embedding, Reshape, Activation, Input
 from keras.layers.merge import Dot
-#from tensorflow.keras.constraints import unit_norm, max_norm
+from tensorflow.keras.constraints import unit_norm, max_norm, non_neg
 from tensorflow.keras import regularizers
 from keras.optimizers import *
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -39,6 +39,7 @@ ap.add_argument("--freeze-out", action="store_true", help="don't update emb_out 
 ap.add_argument("--init-in", type=str, default=None, help="initialize emb_in with pre-trained synset embeddings")
 ap.add_argument("--freeze-in", action="store_true", help="don't update emb_in during training")
 ap.add_argument("-sigm", "--sigmoid", action="store_true", help="apply a sigmoid (logistic) function after dot product, scores need to be scaled to [0, 1]")
+ap.add_argument("-mul", "--multiply-layer", action="store_true", help="apply a non-negative multiplication layer after dot product")
 ap.add_argument("-l2", "--l2-reg", type=float, default=0, help="L2 regularization factor")
 ap.add_argument("-lr", "--learning-rate", type=float, default=0.001, help="")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
@@ -112,6 +113,8 @@ if args.init_in is not None:
 #  dot(out_emb, in_emb)
 o = Dot(axes=2)([out_embbed, in_embbed])
 o = Reshape((1,), input_shape=(1, 1))(o)
+if args.multiply_layer:
+    o = Dense(1, kernel_constraint=non_neg())(o)
 if args.sigmoid:
     o = Activation('sigmoid')(o)
 
