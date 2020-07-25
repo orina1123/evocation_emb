@@ -2,6 +2,22 @@
 ```
 python synset_pair_avg_score.py /path/to/evocation/release-0.4/controlled.word-pos-sense /path/to/evocation/release-0.4/controlled.standard > controlled.standard.synset_pair_avg_score.tsv
 ```
+
+# Pre-trained Synset Vectors
+## Off-the-shelf
+- AutoExtend
+
+https://drive.google.com/drive/folders/0B6KTy_3y_sxXNXNIekVRWGtvVlE?usp=sharing
+
+## Compose Synset Vectors with Word Vectors
+- _lemma_all_avg_
+
+vec(synset) = avg (vec(w) for all lemma(w) in synset)
+```
+python wn_utils/build_synset_emb_from_word.py controlled.standard.synset.list /path/to/glove.6B.50d.w2v_format.txt lemma_all_avg synset_vectors/from_word/glove.6B.50d--lemma_all_avg.synset.vec.txt
+```
+
+
 ## Dataset Property
 ### Correlation of Forward/Backward Evocation 
 ```
