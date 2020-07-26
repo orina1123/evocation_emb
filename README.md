@@ -31,14 +31,15 @@ https://drive.google.com/drive/folders/0B6KTy_3y_sxXNXNIekVRWGtvVlE?usp=sharing
 
 ### Compose Synset Vectors with Word Vectors
 - _lemma_all_avg_
-
 vec(synset `s`) = avg (vec(word `w`) for all `w` if lemma(`w`) in `s`)
+  * based on `glove.6B` https://nlp.stanford.edu/projects/glove/
+  * word embedding file converted to word2vec txt format
 ```
 python wn_utils/build_synset_emb_from_word.py controlled.standard.synset.list /path/to/glove.6B.50d.w2v_format.txt lemma_all_avg synset_vectors/from_word/glove.6B.50d--lemma_all_avg.synset.vec.txt
 ```
 
 ## Train Asymmetric Embeddings
-- Note: the train/val/split is fixed across different runs. However, model performance might differ from run to run due to multithreading.
+- Note: the train/val/test split is fixed across different runs. However, model performance might differ from run to run due to multithreading.
 ### 20% testing, 20% validation
 - Prefix: `ctrl.std.avg--vs0.2ts0.2--glove.6B--lemma_all_avg.d50.mul`
 ```
