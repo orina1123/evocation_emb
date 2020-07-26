@@ -6,12 +6,25 @@ np.random.seed(710)
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Reshape, Activation, Input
 from keras.layers.merge import Dot
+import tensorflow as tf
 from tensorflow.keras.constraints import unit_norm, max_norm, non_neg
 from tensorflow.keras import regularizers
 from keras.optimizers import *
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 import gensim
+
+class RetroRegularizer(regularizers.Regularizer):
+
+    def __init__(self, alpha, ref_mat):
+        self.alpha = alpha
+        self.ref_mat = ref_mat
+
+    def __call__(self, x):
+        return self.alpha * tf.reduce_sum(tf.square(x-ref_mat))
+
+    def get_config(self):
+        return {'alpha': self.alpha}
 
 def build_emb_mat_from_gensim(id2syn, emb_size, gensim_emb, init_emb_mat=None):
     if init_emb_mat is not None:
@@ -41,6 +54,7 @@ ap.add_argument("--freeze-in", action="store_true", help="don't update emb_in du
 ap.add_argument("-sigm", "--sigmoid", action="store_true", help="apply a sigmoid (logistic) function after dot product, scores need to be scaled to [0, 1]")
 ap.add_argument("-mul", "--multiply-layer", action="store_true", help="apply a non-negative multiplication layer after dot product")
 ap.add_argument("-l2", "--l2-reg", type=float, default=0, help="L2 regularization factor")
+ap.add_argument("-rr", "--retro-reg", type=float, default=0, help="retrofitting regularization term factor")
 ap.add_argument("-lr", "--learning-rate", type=float, default=0.001, help="")
 ap.add_argument("-i", "--epochs", type=int, default=50, help="# training epochs")
 ap.add_argument("-vs", "--val-split", type=float, default=0.0, help="split a portion of training data for validation")
@@ -129,12 +143,16 @@ if args.save_emb is not None:
     best_ckpt_path = args.save_emb + ".model.best.hdf5"
 else:
     best_ckpt_path = "/tmp/evocation_emb.model.best.hdf5"
-saveBestModel = ModelCheckpoint(best_ckpt_path, monitor='val_mse', verbose=0, save_best_only=True, mode='min')
-cb.append(saveBestModel)
+if args.val_split > 0.0:
+    saveBestModel = ModelCheckpoint(best_ckpt_path, monitor='val_mse', verbose=0, save_best_only=True, mode='min')
+    cb.append(saveBestModel)
 model.fit(x=[X_out_train, X_in_train], y=Y_train, epochs=args.epochs, batch_size=32, validation_split=args.val_split, callbacks=cb)
 
 # go to best checkpoint
-model.load_weights(best_ckpt_path)
+if args.val_split > 0.0:
+    model.load_weights(best_ckpt_path)
+else:
+    model.save_weights(best_ckpt_path)
 
 # evaluate model
 if args.test_split > 0.0:
