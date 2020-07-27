@@ -55,14 +55,24 @@ while True:
     print(" --[ forward evocation ]-->")
     print("="*50)
     for (t, human_score, dot_score) in sorted(forward_synset_scores_list, key=lambda p: p[-1], reverse=True)[:args.n]:
-        print(s, "-->", t, "\t\t[human]:", human_score, "\t[out*in]:", dot_score)
-        print(" "*(len(s)+4), [str(lemma.name()) for lemma in wn.synset(t).lemmas()])
+        #print(s, "-->", t, "\t\t[human]:", human_score, "\t[out*in]:", dot_score)
+        #print(" "*(len(s)+4), [str(lemma.name()) for lemma in wn.synset(t).lemmas()])
+        if human_score is not None:
+            human_score_str = "{:9.6f}".format(human_score)
+        else:
+            human_score_str = "{:9}".format("None")
+        print("[out*in]:", "{:9.6f}".format(dot_score), " [human]:", human_score_str, " ", s, "-->", t, [str(lemma.name()) for lemma in wn.synset(t).lemmas()])
+    
     print("="*50)
     print(" <--[ backward evocation ]--")
     print("="*50)
     for (t, human_score, dot_score) in sorted(backward_synset_scores_list, key=lambda p: p[-1], reverse=True)[:args.n]:
-        print(s, "<--", t, "\t\t[human]:", human_score, "\t[out*in]:", dot_score)
-        print(" "*(len(s)+4), [str(lemma.name()) for lemma in wn.synset(t).lemmas()])
-
+        #print(s, "<--", t, "\t\t[human]:", human_score, "\t[out*in]:", dot_score)
+        #print(" "*(len(s)+4), [str(lemma.name()) for lemma in wn.synset(t).lemmas()])
+        if human_score is not None:
+            human_score_str = "{:9.6f}".format(human_score)
+        else:
+            human_score_str = "{:9}".format("None")
+        print("[out*in]:", "{:9.6f}".format(dot_score), " [human]:", human_score_str, " ", s, "<--", t, [str(lemma.name()) for lemma in wn.synset(t).lemmas()])
 
     print("")
