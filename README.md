@@ -3,6 +3,8 @@
 - If we learn the synset embeddings only from the collected evocation scores, they can hardly generalize to unseen pairs due to a lack of semantic knowledge as appropriate "inductive bias". There will be too many "solutions" that "fit" the given scores.
 - Load pre-trained synset embeddings to initialize `emb_out` and/or `emb_in` for better generalization to unseen pairs.
 - For every synset pair `(s1, s2)`, fit `w * dot(emb_out(s1), emb_in(s2)) + b` to human evocation score `y`, where `w` is non-negative (to avoid negative correlation). The purpose of `w` and `b` is to transform dot product values of pre-trained vectors to better fit the range of the evocation scores. 
+  - This is a regression problem with Mean Squared Error (MSE) as the loss function.
+  - We can select the model with the lowest MSE throughout training.
 - `dot(emb_out(s1), emb_in(s2))` can be different from `dot(emb_out(s2), emb_in(s1))`, so this model can learn asymmetric similarity judgement scores.  
 
 - Pass `-h` to each script to get detailed usage.
