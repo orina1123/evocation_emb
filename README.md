@@ -180,3 +180,18 @@ trust.v.01 ['trust', 'swear', 'rely', 'bank']
 
 ## All Experiments 
 https://docs.google.com/spreadsheets/d/13si_sL6YTc7zA8ERsFbrbPulNhrEcYXMYaFDCx_798o/edit?usp=sharing
+
+## Additional Notes
+- Mostly about initial processing and some trials
+
+https://paper.dropbox.com/doc/Representation-for-Senses-that-Reflect-Human-Similarity-Judgements--A4~Vy52RnCchmB0~6vOdvdX2AQ-9AQqEWQoA7yGMVk0Pbx2H
+
+## References
+- (evocation) Jordan Boyd-Graber, Christaine Fellbaum, Daniel Osherson, and Robert Schapire. Adding Dense, Weighted Connections to WordNet. In _Proceedings of the Third International WordNet Conference_. Masaryk University Brno, 2006.
+- (asymmetric associaion) Fatemeh Torabi Asr, Robert Zinkov, and Michael Jones. 2018. Querying Word Embeddings for Similarity and Relatedness. In _Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers)_, pages 675–684.
+- (path2vec) Andrey Kutuzov, Mohammad Dorgham, Oleksiy Oliynyk, Chris Biemann, and Alexander Panchenko. 2019. Making Fast Graph-based Algorithms with Graph Metric Embeddings. In _Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics_, pages 3349–3355.
+- Sascha Rothe and Hinrich Schütze. 2015. AutoExtend: Extending Word Embeddings to Embeddings for Synsets and Lexemes. In _Proceedings of the 53rd Annual Meeting of the Association for Computational Linguistics and the 7th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)_, pages 1793–1803.
+- Manaal Faruqui, Jesse Dodge, Sujay Kumar Jauhar, Chris Dyer, Eduard Hovy, and Noah A. Smith. 2015. Retrofitting Word Vectors to Semantic Lexicons. In _Proceedings of the 2015 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies_, pages 1606–1615.
+- Jeffrey Pennington, Richard Socher, and Christopher Manning. 2014. GloVe: Global Vectors for Word Representation. In _Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)_, pages 1532–1543.
+- Tomas Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean. 2013. Efficient Estimation of Word Representations in Vector Space. _arXiv preprint arXiv:1301.3781_.
+- Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg S Corrado, and Jeff Dean. 2013. Distributed Representations of Words and Phrases and their Compositionality. In _Advances in Neural Information Processing Systems_, pages 3111–3119.
